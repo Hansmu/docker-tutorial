@@ -39,6 +39,7 @@ Adding --detach will make it run in the background. Returns the ID of our contai
 Each time we run the command, we create a new container from the image.
 
 `docker container ls` = `docker ps` - returns the list of containers that are running.
+If you add `-a`, then you can see containers that have been stopped, but not removed.
 
 `docker container stop` = `docker stop <container id>` - stops the container. Have to type in enough digits to identify it uniquely.
 
@@ -61,3 +62,5 @@ In addition to an ID, an unique name is also generated for the container, if we 
 7) Starts container by using the CMD in the image Docker file
 
 Container is nothing like a virtual machine. It's a restricted process running on our host machine.
+
+`--env` = `-e` can be used to pass environment variables
