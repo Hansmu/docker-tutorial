@@ -24,7 +24,8 @@ Docker's default image "registry" is called Docker Hub. (hub.docker.com)
 
 First example command:
 
-`docker container run --publish 80:80 nginx`
+`docker container run --publish 80:80 nginx` The left port is the host listening port. 
+Right hand is within the container
 
 What happened with the command:
 
