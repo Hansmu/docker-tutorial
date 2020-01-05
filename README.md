@@ -64,3 +64,10 @@ In addition to an ID, an unique name is also generated for the container, if we 
 Container is nothing like a virtual machine. It's a restricted process running on our host machine.
 
 `--env` = `-e` can be used to pass environment variables
+
+`docker container top` - process list in one container.
+
+`docker container inspect <name>` - shows a JSON about how the container was started. Its config.
+
+`docker container stats <name>` - shows performance data. Memory, CPU etc.
+
