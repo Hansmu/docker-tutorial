@@ -65,9 +65,18 @@ Container is nothing like a virtual machine. It's a restricted process running o
 
 `--env` = `-e` can be used to pass environment variables
 
+## Container inspect
+
 `docker container top` - process list in one container.
 
 `docker container inspect <name>` - shows a JSON about how the container was started. Its config.
 
 `docker container stats <name>` - shows performance data. Memory, CPU etc.
 
+## Open a shell into a container
+
+`docker container run -it ... bash` - runs and enters a shell instantly. -i keeps the session 
+open and -t opens a prompt with bash. If we exit the shell, then the container stops.
+
+`docker container exec -it ... bash` - opens a shell separately. If you exit it, then the
+container keeps running.
