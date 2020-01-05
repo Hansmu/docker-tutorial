@@ -1,5 +1,15 @@
 To have completion in PowerShell, use `Import-Module DockerCompletion`
 
+From a certain point the way commands are structured changes - 
+the old way still works, but there's a different grouping now. There were so many commands
+that they needed to create an easier way to manage the commands.
+
+The old way is `docker <command>`
+
+The new way is `docker <management command> <command>`
+
+E.g. `docker run` vs `docker container run`
+
 #Image vs Container
 
 An image is the application we want to run. 
