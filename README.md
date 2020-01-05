@@ -10,7 +10,9 @@ The new way is `docker <management command> <command>`
 
 E.g. `docker run` vs `docker container run`
 
-#Image vs Container
+To get help with a specific command, you can use `docker <management command> --help`
+
+#Image (like a class) vs Container (like an object)
 
 An image is the application we want to run. 
 
@@ -22,7 +24,9 @@ Docker's default image "registry" is called Docker Hub. (hub.docker.com)
 
 First example command:
 
-docker container run --publish 80:80 nginx
+`docker container run --publish 80:80 nginx`
+
+What happened with the command:
 
 1) Downloaded image 'nginx' from Docker Hub
 2) Started a new container from that image
@@ -31,13 +35,20 @@ docker container run --publish 80:80 nginx
 
 Adding --detach will make it run in the background. Returns the ID of our container.
 
-**docker container ls = docker ps** - returns the list of containers that are running.
+Each time we run the command, we create a new container from the image.
 
-**docker container stop = docker stop <container id>** - stops the container. Have to type in enough digits to identify it uniquely.
+`docker container ls` = `docker ps` - returns the list of containers that are running.
 
-In addition to an ID, an unique name is also generated for the container, if we don't specify one ourselves. 
+`docker container stop` = `docker stop <container id>` - stops the container. Have to type in enough digits to identify it uniquely.
 
-**docker container rm <id>** - remove Docker container
+In addition to an ID, an unique name is also generated for the container, if we don't specify one ourselves.
+`--name <name>` can be used to specify a name. 
+
+`docker container logs <id>` - gives logs for that specific container.
+
+`docker container top <id>` - gives list of processes running inside of that container.
+
+`docker container rm <id>` - remove Docker container
 
 ### What happens in 'docker container run'
 1) Looks for that image locally in image cache, doesn't find anything
