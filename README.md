@@ -1,3 +1,5 @@
+To have completion in PowerShell, use `Import-Module DockerCompletion`
+
 #Image vs Container
 
 An image is the application we want to run. 
