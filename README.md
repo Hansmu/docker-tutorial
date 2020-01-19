@@ -80,3 +80,22 @@ open and -t opens a prompt with bash. If we exit the shell, then the container s
 
 `docker container exec -it ... bash` - opens a shell separately. If you exit it, then the
 container keeps running.
+
+# Docker networks
+
+Each container connected to a private virtual network "bridge". 
+Each virtual network routes through NAT firewall on host IP. Best practice is to create a new
+virtual network for each app. That is an app and its DB and such.
+
+`docker container port <container>` can be used to check the exposed port.
+
+The below command can be used to filter out a specific parameter from the configuration JSON.
+
+``docker container inspect --format "{{ .NetworkSettings.IPAddress }}" webhost``
+
+If the -p option is not used when running a container, then that container will not be exposed to the network.
+What -p does is that it opens up a port on the Ethernet interface and all traffic
+that comes in through that port gets routed to the container's mapped port.
+
+If -p isn't specified, then containers within a single network can still communicate with each other,
+but they don't know anything of the outside world, that includes other virtual networks.
