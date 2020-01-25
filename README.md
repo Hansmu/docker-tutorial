@@ -144,6 +144,14 @@ The bridge network does not have DNS functionality, so if you try to ping anothe
 within the bridge network, then you won't find them. You can manually declare the connections
 within the bridge network using --link, but it's much easier to just create your own custom network.
 
-WHen running a container, you can specify --rm so that it removes the container as soon as you 
+When running a container, you can specify --rm so that it removes the container as soon as you 
 exit the shell. Makes testing faster.
 `docker container run --rm -it centos:7 bash`
+
+You can add multiple DNS aliases to networks. The use is that in order to make sure something
+is up 24/7, then behind a single IP can be multiple servers. `-net-alias` can be used to 
+add an alias to the container. If you ping them, then you'll hit them one after the other or just randomly.
+So the first ping hits the first container, second hits the second, third hits the first again
+and round and round it goes.
+
+`docker container run -d --net <network name> --net-alias <alias for the container> elasticsearch:2`
