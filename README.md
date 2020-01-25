@@ -130,3 +130,16 @@ from our network.
 
 With Docker it's easier to protect your apps. In the real world with physical machines and virtual machines
 they were often overexposed. In Docker you can keep them in a single host and only expose a single port.
+
+You can't rely on IP addresses inside of containers because things are dynamic. Forget IPs
+static IPs and using IPs for talking to containers is an anti-pattern. Do your best to avoid it.
+
+Docker DNS is a built-in DNS server in the docker daemon that containers use by default.
+The default implementation provides DNS routing using your container names.
+
+`docker container exec -it my_nginx ping new_nginx` - Pinging the other container just works 
+out of the box.
+
+The bridge network does not have DNS functionality, so if you try to ping another container
+within the bridge network, then you won't find them. You can manually declare the connections
+within the bridge network using --link, but it's much easier to just create your own custom network.
