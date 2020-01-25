@@ -161,3 +161,22 @@ and round and round it goes.
 Images are app binaries and dependencies, with metadata about the image data and how to 
 run the image. It's not a complete OS. No drivers and such. It's not booting up a full 
 OS, just starting an application. It can be pretty small.
+
+When choosing images from hub.docker.com, then it's safest to start with the official ones.
+They're the ones with the word official under them. It doesn't have a forward slash in front of it.
+When a user creates an image, then it has to be done from under a user. So the image name
+becomes `<username>/<image repository names>`. Docker has a group of people actually working
+on the official images, to make sure they are well documented and tested. They usually work
+with the official team of that specific software.
+
+Images have tags ont the Docker hub with which they can be referred to. E.g. with Nginx 
+1/1.11/latest/1.11.9 all of these would refer to the same thing during the filming of the tutorial.
+When you're actually using images in your application, then you'd probably want the most specific version.
+Otherwise if you'd specify say just nginx:1, then it'd download the newest version of nginx that
+starts with the version 1, so 1.X.X. But that can lead to inconsistencies during installation.
+
+The image ID is based upon on the cryptographic sha of each image in the Docker hub. So if you
+download the latest version using different specifiers, like 1.11, 1.11.9, latest, then you'd get
+images listed locally that have the same image ID for those three specifiers. So it's just 3
+tags with the same image ID. It's not taking up 3x the space, they're all just referring to the same
+image that locally exists on the machine.
