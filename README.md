@@ -143,3 +143,7 @@ out of the box.
 The bridge network does not have DNS functionality, so if you try to ping another container
 within the bridge network, then you won't find them. You can manually declare the connections
 within the bridge network using --link, but it's much easier to just create your own custom network.
+
+WHen running a container, you can specify --rm so that it removes the container as soon as you 
+exit the shell. Makes testing faster.
+`docker container run --rm -it centos:7 bash`
