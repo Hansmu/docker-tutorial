@@ -99,3 +99,34 @@ that comes in through that port gets routed to the container's mapped port.
 
 If -p isn't specified, then containers within a single network can still communicate with each other,
 but they don't know anything of the outside world, that includes other virtual networks.
+
+`docker network ls` - show all the networks that have been created.
+
+`docker network inspect bridge` - shows us that a random container we created is connected to the bridge
+underneath the containers section.
+
+The host network listed is to connected directly to the host's physical connection. This can
+provide a performance boost at the cost of security. Also it may help overcome issues with
+specific software.
+
+The none network is an interface that isn't connected to anything.
+
+`docker network create udemy_network` - creates our own custom network. By default it uses
+the bridge driver as its driver. A network driver is a built-on or 3rd party extension that
+gives the virtual network features. A new network has its subnet incremented by one. Generally
+the network has a /16 subnet.
+
+`docker container run -d --name new_nginx --network udemy_network nginx` - to add a new container
+into our newly created network.
+
+`docker network connect <network identifier> <container identifier>` - connects an existing
+container into the network that we've created.
+
+If we inspect our container now, then it can be seen that it's on two networks - the original
+bridge and in our newly created network.
+
+`docker network disconnect <network identifier> <container identifier>` - removes the container
+from our network.
+
+With Docker it's easier to protect your apps. In the real world with physical machines and virtual machines
+they were often overexposed. In Docker you can keep them in a single host and only expose a single port.
