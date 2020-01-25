@@ -155,3 +155,9 @@ So the first ping hits the first container, second hits the second, third hits t
 and round and round it goes.
 
 `docker container run -d --net <network name> --net-alias <alias for the container> elasticsearch:2`
+
+# Docker Images
+
+Images are app binaries and dependencies, with metadata about the image data and how to 
+run the image. It's not a complete OS. No drivers and such. It's not booting up a full 
+OS, just starting an application. It can be pretty small.
