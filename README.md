@@ -180,3 +180,28 @@ download the latest version using different specifiers, like 1.11, 1.11.9, lates
 images listed locally that have the same image ID for those three specifiers. So it's just 3
 tags with the same image ID. It's not taking up 3x the space, they're all just referring to the same
 image that locally exists on the machine.
+
+Images are made up of file system changes and metadata. A Docker image looks like a layer of pancakes.
+It consists of several layers. It begins with a blank layer known as scratch. Everything
+set of changes that happens after that on the file system in the image is another layer.
+The layers have their unique identifiers. Each layer does something to the image. Each 
+layer gets cached onto the user machine. This means that if  different images are using 
+the same layers, then they aren't saved several times, but each  layer is cached and 
+then the cached layer is used within that image's stack. So suppose that you have a 
+MySQL DB saved on your machine and different images perform different operations on it,
+then for both of those images the very bottom layer is the same MySQL DB layer. When you
+run `docker history <image>`, then you can see everything that has been done to the image.
+It displays all the layers. Each layer represents when and how an image was changed on
+Docker Hub. When you look at the IMAGE column, then there's `<missing>`, that doesn't
+actually mean something's missing. It means that the image itself has the ID of the 
+only layer that has an ID present. All the other layers that don't represent the image
+itself are with the missing tag. The present ID is the same as when you use `docker image ls`
+
+When you run a container off of an image, then all Docker does is creates a new 
+read-write layer on top of the image. However when you're changing files in the image
+then a thing happens which is known as copy on write. The file system will take that
+changed file out of the image and copy it into the container.
+
+`docker image inspect <image identifier>` - this can be used to see all sorts of 
+information about the image. For example what ports need to be opened up 
+("ExposedPorts").
