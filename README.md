@@ -226,3 +226,17 @@ also set a repository to be private on Docker Hub.
 When you login to docker with `docker login`, then your login key gets stored on 
 the machine under the current profile. If it's a machine you don't trust, then 
 you should use `docker logout` after you're done.
+
+A Dockerfile is a recipe for creating your image. A Dockerfile might look like a shell
+script but it isn't. It's a thing on its own. The syntax is specific to Docker. By default
+the file `Dockerfile` is searched for, but if you have a custom name, then you can use
+a custom name e.g. `docker build -f some-docker-file`. Each statement in the file 
+is a layer in our Docker image, so the order matters. The basic statements that are 
+inside of a Dockerfile are: 
+```
+FROM ...
+ENV ...
+RUN ...
+EXPOSE ...
+CMD ...
+```
