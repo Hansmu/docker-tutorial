@@ -205,3 +205,24 @@ changed file out of the image and copy it into the container.
 `docker image inspect <image identifier>` - this can be used to see all sorts of 
 information about the image. For example what ports need to be opened up 
 ("ExposedPorts").
+
+Images don't really have a name property. If you do a `docker image ls`, then you can see 
+that there is no name column. You have repository, tag and image ID. An image ID
+is difficult to remember, but we have the repository for reference. As mentioned
+above then it has `<user>/<image>`, where official ones don't have a user in front
+of it. A tag is a pointer to a specific image commit. 
+
+You can create a custom image from an existing repository by using the command
+`docker image tag <existing repository> <new repository>`. For example: 
+`docker image tag nginx UserMcUser/nginx`. To add it to Docker
+Hub, then use `docker image push <new repository>`. For example: 
+`docker image push UserMcUser/nginx`. To add additional tags to
+the release, then you can use `docker image tag <existing repository> <new repository>:<tag>`. For example
+`docker image tag UserMcUser/nginx UserMcUser/nginx:bananas`. Then to add it to the 
+Hub, then you'd use `docker image push UserMcUser/nginx:bananas`. If there are 
+layers that already exist, then Docker won't bother re-uploading them. You can
+also set a repository to be private on Docker Hub.
+
+When you login to docker with `docker login`, then your login key gets stored on 
+the machine under the current profile. If it's a machine you don't trust, then 
+you should use `docker logout` after you're done.
