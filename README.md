@@ -240,3 +240,10 @@ RUN ...
 EXPOSE ...
 CMD ...
 ```
+
+`docker image build -t <repository> .` - to build a Docker image from a Dockerfile.
+The . means that it'll be put into this directory. The first build takes the longest
+amount of time, because the layers haven't been cashed. If you make a change after
+the first build, then the layer that you changed and every layer after it will get
+rebuilt. Keep the things that change the least at the top of your Dockerfile and 
+things that change the least at the bottom.
