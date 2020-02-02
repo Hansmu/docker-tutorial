@@ -247,3 +247,10 @@ amount of time, because the layers haven't been cashed. If you make a change aft
 the first build, then the layer that you changed and every layer after it will get
 rebuilt. Keep the things that change the least at the top of your Dockerfile and 
 things that change the least at the bottom.
+
+Ideally, if you can get an official image to get the job done, then it'd be a lot
+easier to maintain your image's Dockerfile. E.g. adding Nginx related things to a
+Linux distribution instead of just starting by including the Nginx image. However,
+sometimes the default image can limit what you need. In that case you can go
+searching for custom images that seem trustworthy or start building it from scratch.
+Building from scratch is just more work and upkeep over time.
