@@ -105,14 +105,14 @@ but they don't know anything of the outside world, that includes other virtual n
 `docker network inspect bridge` - shows us that a random container we created is connected to the bridge
 underneath the containers section.
 
-The host network listed is to connected directly to the host's physical connection. This can
-provide a performance boost at the cost of security. Also it may help overcome issues with
+The "host" network, listed by the `docker network ls` command, is to connected directly to the host's physical 
+connection. This can provide a performance boost at the cost of security. Also it may help overcome issues with
 specific software.
 
 The none network is an interface that isn't connected to anything.
 
 `docker network create udemy_network` - creates our own custom network. By default it uses
-the bridge driver as its driver. A network driver is a built-on or 3rd party extension that
+the bridge driver as its driver. A network driver is a built-in or 3rd party extension that
 gives the virtual network features. A new network has its subnet incremented by one. Generally
 the network has a /16 subnet.
 
@@ -169,20 +169,20 @@ becomes `<username>/<image repository names>`. Docker has a group of people actu
 on the official images, to make sure they are well documented and tested. They usually work
 with the official team of that specific software.
 
-Images have tags ont the Docker hub with which they can be referred to. E.g. with Nginx 
+Images have tags on the Docker hub with which they can be referred to. E.g. with Nginx 
 1/1.11/latest/1.11.9 all of these would refer to the same thing during the filming of the tutorial.
 When you're actually using images in your application, then you'd probably want the most specific version.
 Otherwise if you'd specify say just nginx:1, then it'd download the newest version of nginx that
 starts with the version 1, so 1.X.X. But that can lead to inconsistencies during installation.
 
-The image ID is based upon on the cryptographic sha of each image in the Docker hub. So if you
+The image ID is based on the cryptographic sha of each image in the Docker hub. So if you
 download the latest version using different specifiers, like 1.11, 1.11.9, latest, then you'd get
 images listed locally that have the same image ID for those three specifiers. So it's just 3
 tags with the same image ID. It's not taking up 3x the space, they're all just referring to the same
 image that locally exists on the machine.
 
 Images are made up of file system changes and metadata. A Docker image looks like a layer of pancakes.
-It consists of several layers. It begins with a blank layer known as scratch. Everything
+It consists of several layers. It begins with a blank layer known as scratch. Every 
 set of changes that happens after that on the file system in the image is another layer.
 The layers have their unique identifiers. Each layer does something to the image. Each 
 layer gets cached onto the user machine. This means that if  different images are using 
@@ -242,11 +242,11 @@ CMD ...
 ```
 
 `docker image build -t <repository> .` - to build a Docker image from a Dockerfile.
-The . means that it'll be put into this directory. The first build takes the longest
-amount of time, because the layers haven't been cashed. If you make a change after
+The `.` means that it'll be put into this directory. The first build takes the longest
+amount of time, because the layers haven't been cached. If you make a change after
 the first build, then the layer that you changed and every layer after it will get
 rebuilt. Keep the things that change the least at the top of your Dockerfile and 
-things that change the least at the bottom.
+things that change the most at the bottom.
 
 Ideally, if you can get an official image to get the job done, then it'd be a lot
 easier to maintain your image's Dockerfile. E.g. adding Nginx related things to a
@@ -254,3 +254,60 @@ Linux distribution instead of just starting by including the Nginx image. Howeve
 sometimes the default image can limit what you need. In that case you can go
 searching for custom images that seem trustworthy or start building it from scratch.
 Building from scratch is just more work and upkeep over time.
+
+##Volumes
+Containers are usually immutable(unchanging) and ephemeral(temporary).
+It means that when we need to update the container, then we'll have to re-deploy it,
+never change the existing one. But what happens to the data?
+
+Docker has two solutions to keeping persistent data. Volumes and bind mounts.
+Volumes are in a special location outside of the container unified file system.
+Allows us to attach it to any container. The container sees it as a regular file path.
+Bind mount is linking a host file path to a container.
+
+`VOLUME /path/to/directory` is used to define the directory path for the volume inside
+of the container. Which means that any file we put in that directory inside of the container
+will outlive the container until we manually delete the volume. Volumes need manual 
+deletion.
+
+`docker volume prune` can be used to clean up unused volumes.
+
+When you do an image inspect, then you can see that there is a volumes property.
+You can very with that that volumes are in use. If you create a container from
+the image, then you should see a volumes property there as well. Additionally
+there should be a volumes entry under mounts. Destination specifies where the 
+container is trying to find the data internally and source specifies where the
+volumes actually exist on the host. With Linux, you can navigate to that path 
+to actually see the data. However, on Mac and Windows, Docker is creating a VM
+in the background. So the data is inside of the VM, so you can't go to the path
+to actually see the file.
+
+`docker volume inspect <id>` can be used to inspect the volumes. We can't see from
+the volume's perspective what it's connected to. To fix this problem we can use
+`-v` when creating the container to specify the volume name. You have to specify
+the volumes folder as well.
+
+Example: `docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True 
+-v mysql-my-custom-volume-name:/var/lib/mysql mysql`
+
+Now if go under `docker volume ls`, then you can see that a named volume has been 
+created.
+
+Additionally, you can use that setup to reuse a volume by just changing the `--name`
+to another one.
+
+Sometimes you might need to create a Docker volume ahead of time. For local development
+that isn't necessary. But you can do this with `docker volume create`
+
+Bind mounting is mapping a host file or directory to a container file or directory.
+It doesn't overwrite any data. However, it takes precedence over the file in the 
+container. If the bind mount is removed, then the file that existed before gets used
+again. Can't specify them in a Dockerfile because you need them to exist at a certain
+path on the host. Has to be added with `container run`. For example: `container run 
+-v //c/Users/bob/doc/things:/path/in/container`
+
+`docker container run -d --name nginx -p 80:80 -v ${pwd}:/usr/share/nginx/html nginx` - 
+${pwd} prints out the working directory. So we're mounting our current directory to be 
+in the nginx/html folder. If you'd add a new file to the folder, then you'd see it inside 
+of the Docker container as well. If you delete the file inside of the container, then it
+gets removed from the host as well.
