@@ -35,11 +35,11 @@ Also, whereas the virtual machine is shareable, it is not that easy.
 
 Containers are a lot more lightweight. They share more information.
 
-| Virtual machines                                           | Containers                                                     |
-|------------------------------------------------------------|----------------------------------------------------------------|
-| Low impact on OS, very fast, minimal disk space usage      | Bigger impact on OS, slower, higher disk space usage           |
-| Sharing, re-building and distribution is easy              | Sharing, re-building and distribution can be challenging       |
-| Encapsulate apps/environments instead of "whole machines"  | Encapsulate "whole machines" instead of just apps/environments |
+| Containers                                                | Virtual machines                                               |
+|-----------------------------------------------------------|----------------------------------------------------------------|
+| Low impact on OS, very fast, minimal disk space usage     | Bigger impact on OS, slower, higher disk space usage           |
+| Sharing, re-building and distribution is easy             | Sharing, re-building and distribution can be challenging       |
+| Encapsulate apps/environments instead of "whole machines" | Encapsulate "whole machines" instead of just apps/environments |
 
 ## Docker tools & building blocks
 
