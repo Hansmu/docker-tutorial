@@ -11,8 +11,11 @@
 7. Starts the container by using the CMD definition in the image Dockerfile
 
 
-## Container vs Image
+## Container vs Image vs Dockerfile
+A Dockerfile is used to build an image.
+
 An image is a template/blueprint for a container.
+
 It contains:
 * App binaries and dependencies
 * Metadata about the image data and how to run the image
@@ -23,6 +26,7 @@ A single image can be used to create multiple containers.
 
 ![Images vs containers](./images/imagesVsContainers.png)
 
+![Dockerfile builds an image, which runs a container](./images/dockerfile-vs-image-vs-container.png)
 ## Docker Hub
 
 The workflow with Docker usually looks like so:

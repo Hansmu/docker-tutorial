@@ -3,7 +3,7 @@
 Docker != containers. Docker is a **tool** for creating and managing containers.
 
 ## What is Docker?
-Docker is a container technology: A tool for creating and managing container.
+Docker is a container technology: A tool for creating and managing containers.
 
 Then the next question is - what is a container? A container is a standardized unit of software.
 A package of code and dependencies to run that code. E.g. NodeJS code + the NodeJS runtime.
