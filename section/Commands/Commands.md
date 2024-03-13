@@ -141,3 +141,23 @@ The network-ref is either by ID or name. Same for the container-ref.
 ```
 docker network disconnect <network-ref> <container-ref>
 ```
+
+## Compose
+
+### Running a compose file
+
+To run a compose file, you can use:
+```
+docker-compose up
+```
+
+To run it in the background, you can add the `-d` flag.
+
+In newer versions of Docker, you can use `docker compose up` instead of `docker-compose up`.
+
+### Stopping a compose file
+
+To stop a compose file, you can use:
+```
+docker-compose down
+```

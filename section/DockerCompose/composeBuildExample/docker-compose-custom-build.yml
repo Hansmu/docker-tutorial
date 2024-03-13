@@ -1,0 +1,12 @@
+services:
+  proxy:
+    build:
+      context: . # Context can refer to a local folder or a remote URL. The local URL should be relative to the compose file.
+      # It tells the compose build where to build from.
+      dockerfile: customNginx.Dockerfile
+    ports:
+      - '80:80'
+  web:
+    image: httpd
+    volumes:
+      - ./html:/usr/local/apache2/htdocs/ # Bind mount in the volumes section
