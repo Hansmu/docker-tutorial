@@ -1,163 +1,228 @@
 # Commands
 
-The old way for the commands was to just have `docker <command> (options)`.
-However, it started getting out of control.
+Docker commands originally used a flat structure:
 
-The new format is `docker <command> <sub-command> (options)`.
-The old format still works, but it's recommended to go with the new as it supports new features.
+```
+docker <command> [OPTIONS]
+```
+
+As Docker grew, commands were reorganized into management command groups:
+
+```
+docker <command> <sub-command> [OPTIONS]
+```
+
+The old format still works (for example, `docker run`), but the newer format (`docker container run`) is clearer, better organized, and recommended.
+
+---
 
 ## Containers
 
-When referring to a container, you can use either the generated ID or name.
+When referring to a container, you can use:
+* the container name
+* the container ID (full or shortened)
 
-### Running a container
+---
 
-To run a container, you can use:
+## Running a container
+
 ```bash
 docker container run --publish 80:80 --detach nginx
 ```
 
-* The `--publish` flag exposes a port inside the container to the host machine.
-  * In the example, that's saying that from the host machine port 80 (on the left), you can access the container's port 80 (on the right).
-* The `--detach` flag means that it's going to be running in the background.
-* You can specify a name with `--name` if you want a specific one. Otherwise, one will be generated automatically.
+This command does three things:
+* Pulls the image (if it is not already present)
+* Creates a container
+* Starts the container
 
-To break down the above command, then you have
+### Common options
+
+* `--publish <host-port>:<container-port>`
+  * Maps a port on the host machine to a port inside the container
+  * Example: host port `80` → container port `80`
+
+* `--detach` (`-d`)
+  * Runs the container in the background
+
+* `--name <name>`
+  * Assigns a custom name to the container
+
+### Command structure
 ```
-docker container run --publish <host-port>:<port-inside-container> <image-name>
+docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
 ```
 
-### Viewing containers
+---
 
-To view running containers, you can use:
+## Viewing containers
+
+Show running containers:
+
 ```bash
 docker container ls
 ```
 
-To also see stopped containers, then the `--a` flag can be added for "all".
+Show all containers (including stopped ones):
 
 ```bash
 docker container ls -a
 ```
 
-### Stopping a container
+---
 
-To stop a container, you can use:
-```
+## Stopping a container
+
+```bash
 docker container stop <container-ref>
 ```
 
-### Staring an existing container
+This sends a graceful shutdown signal to the container’s main process.
 
-To start an existing container, you can use:
-```
+---
+
+## Starting an existing container
+
+```bash
 docker container start <container-ref>
 ```
 
-### Removing containers
+`start` runs an already-created container.
+It does not create a new container.
 
-To remove a container, you can use:
-```
+---
+
+## Removing containers
+
+Remove a stopped container:
+
+```bash
 docker container rm <container-ref>
 ```
 
-You can specify multiple refs in the same command
-```
+Remove multiple containers:
+
+```bash
 docker container rm a2 f2 d2
 ```
 
 A running container cannot be removed by default.
-If you want to remove a running container, then you can either stop it and then remove or you can add the force flag.
 
-In order to force remove a container:
-```
+Force removal (stop + remove):
+
+```bash
 docker container rm -f <container-ref>
 ```
 
-### Getting a shell inside a container
+---
 
-If you're just starting a container and want a shell into it, then you can add the `-it` flags to the run command:
-It's a combination of two flags:
-* `t` - opens up a terminal
-* `i` - keeps the terminal open and makes it interactable
+## Getting a shell inside a container
 
-After the image name you can add a command that'll be run inside the container.
-
-So the example below opens up bash in the terminal.
+### Starting a container with an interactive shell
 
 ```bash
-docker container run -it nginx bash
+docker container run -it ubuntu bash
 ```
 
-The full structure of the run command is this:
-```
-docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
-```
+* `-i` keeps standard input open
+* `-t` allocates a pseudo-terminal
 
-To connect to an already running container, then you can use:
-```
+> Note: Not all images include `bash`.
+> 
+> For minimal images (e.g. Alpine), use `sh`.
+
+
+### Connecting to a running container
+
+```bash
 docker container exec -it <container-ref> bash
 ```
 
-## Networks
+This executes a command inside an already running container.
 
-### See all networks
+--- 
+
+## Networks
+### List networks
 
 ```bash
 docker network ls
 ```
 
-By default, you'll see three:
-* bridge - the default bridge network
-* host - the host network, so if you want to directly connect to the host
-* null - if you want to detach from all networks 
+Default networks include:
+* `bridge` – default container network
+* `host` – container shares the host’s network stack
+* `none` – container has no network access
 
-### See specific network details
+---
 
+### Inspect a network
+
+```bash
+docker network inspect <network-ref>
 ```
-docker network inspect <specific-network>
-```
 
-You can see there, for example, the containers that are on that network.
+Shows details such as connected containers and configuration.
 
-### Create a new network
+---
 
-```
+### Create a network
+
+```bash
 docker network create <network-name>
 ```
 
-To attach a container to the new network, add the `--network <network-name>` flag when creating the container. 
+Attach a container to a network at creation time:
 
-### Attach an existing container to a network
-
+```bash
+docker container run --network <network-name> ...
 ```
+
+--- 
+
+### Connect or disconnect a container
+
+Connect:
+
+```bash
 docker network connect <network-ref> <container-ref>
 ```
 
-The network-ref is either by ID or name. Same for the container-ref.
-
-### Remove an existing container from a network
-
-```
+Disconnect:
+```bash
 docker network disconnect <network-ref> <container-ref>
 ```
 
-## Compose
+---
 
-### Running a compose file
+## Docker Compose
 
-To run a compose file, you can use:
+Docker Compose is used to define and run multi-container applications.
+
+--- 
+
+### Running a Compose project
+
+```bash
+docker compose up
 ```
-docker-compose up
+
+Run in the background:
+
+```bash
+docker compose up -d
 ```
 
-To run it in the background, you can add the `-d` flag.
+> `docker-compose up` still works but is considered legacy.
 
-In newer versions of Docker, you can use `docker compose up` instead of `docker-compose up`.
+---
 
-### Stopping a compose file
+### Stopping a Compose project
 
-To stop a compose file, you can use:
+```bash
+docker compose down
 ```
-docker-compose down
-```
+
+This:
+* stops containers
+* removes containers
+* removes the default network
