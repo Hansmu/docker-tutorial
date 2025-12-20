@@ -1,135 +1,186 @@
 # Images and containers
 
+## What happens when you run ``docker container run``?
 
-## What happens in `docker container run`?
-1. Looks for that image locally in image cache, doesn't find anything.
-2. Looks in remote image repository (defaults to Docker Hub)
-3. Downloads the latest version (nginx:latest by default)
-4. Creates new container based on that image and prepares to start
-5. Gives it a virtual IP on a private network inside Docker Engine
-6. (If the publish flag was specified) Opens up port 80 on host and forwards to port 80 in the container
-7. Starts the container by using the CMD definition in the image Dockerfile
+When you execute ``docker container run <image>``, Docker performs the following steps:
+1. Checks the local image cache
+   * Docker looks for the specified image locally.
+2. Pulls the image from a registry if missing
+   * If the image is not found locally, Docker pulls it from a remote registry
+   * (Docker Hub by default).
+3. Downloads only missing layers
+    * Images are composed of layers. Docker downloads only the layers that are not already present.
+4. Creates a new container from the image
+   * A container is created using the image as a read-only template.
+5. Connects the container to a Docker network
+   * By default, the container is attached to the ``bridge`` network and receives:
+     * an internal IP address
+     * DNS-based name resolution
+6. Sets up port forwarding (if publishing ports)
+   * If the ``--publish (-p)`` flag is specified, Docker creates port-forwarding (NAT) rules that map a port on the host to a port inside the container.
+7. Starts the container’s main process
+   * Docker runs the image’s default ``CMD``, unless a command is explicitly provided in the ``docker container run`` command (which overrides ``CMD``).
 
+---
 
-## Container vs Image vs Dockerfile
-A Dockerfile is used to build an image.
+## Dockerfile vs Image vs Container
 
-An image is a template/blueprint for a container.
+### Dockerfile
 
-It contains:
-* App binaries and dependencies
-* Metadata about the image data and how to run the image
+A Dockerfile is a text file that defines how to build an image.
 
-A container is a running unit of software.
+It contains instructions for:
+* selecting a base image
+* installing dependencies
+* configuring the runtime behavior
 
-A single image can be used to create multiple containers.
+---
+
+### Image
+
+A Docker image is a read-only blueprint used to create containers.
+
+An image contains:
+
+* application binaries and dependencies
+* filesystem layers
+* metadata describing how the image should run
+
+A single image can be used to create many containers.
+
+---
+
+### Container
+
+A container is a running instance of an image.
+* Containers are created from images
+* Containers execute processes
+* Containers have their own isolated runtime environment
 
 ![Images vs containers](./images/imagesVsContainers.png)
 
 ![Dockerfile builds an image, which runs a container](./images/dockerfile-vs-image-vs-container.png)
+
+---
+
 ## Docker Hub
 
-The workflow with Docker usually looks like so:
-* We pull in an existing image (ex. Node)
-* We build on top of that image
+Docker Hub is a centralized image registry used to store and share Docker images.
 
-A public centralized location for images is the Docker Hub.
-It contains official and community shared images.
+A typical Docker workflow:
+1. Pull an existing base image (e.g. node, nginx)
+2. Build a custom image on top of it
 
-When choosing images, we should always look at official ones first.
-A team at Docker helps manage the official images.
+Docker Hub provides:
+* Official images (maintained with help from Docker)
+* Community images
+* Public and private repositories
 
-If the official one doesn't work for you, then go by popularity.
-It's always a good idea to check the source code of the non-official image that you're downloading.
+### Choosing images
 
-To get a specific version of a dependency, you can use a tag.
-By default, you get the latest.
-It isn't necessarily the latest commit, but the latest version of the product.
+* Prefer official images whenever possible
+* If using non-official images:
+  * check popularity
+  * review documentation
+  * inspect source code when available
 
-When going to production, you'll want a specific version.
+---
 
-If you look at the list of images that you have, then you'll notice that each of them has a hash and the size that they take up.
-Each one with the same hash doesn't take up the space specified.
-The ones with the same hash only take up the space once.
+## Image tags and versions
 
-When referring to an image, then we have 3 bits of information to use to refer to them:
-* User
-* Repo
-* Tag
+Images can be versioned using tags.
+* If no tag is specified, Docker uses ``latest``
+* ``latest`` is just a tag, not a guarantee of stability or recency
+* In production, always pin specific versions
 
-Official images skip the user bit.
-
-If a tag is omitted, then the `latest` tag is used.
-
+Example references:
 ```
-<user>/<repo>:<tag> //Custom
-mysql/mysql-server:latest
+<user>/<repo>:<tag>
+mysql/mysql-server:8.0
 
-<repo>:<tag> //Official
-nginx:latest
+<repo>:<tag>        # Official image
+nginx:1.25
 ```
 
-A tag is a pointer to a specific image commit.
+Tags are mutable pointers. For absolute immutability, images can also be referenced by digest.
 
-The latest tag doesn't necessarily reference the latest one.
-You can tag some old software with the latest.
-It's just a convention that you should use latest for the latest.
-On official images, you can trust latest to be the latest.
+---
 
-## Layers
+## Image layers
 
-Docker uses a union file system. 
-It allows for different directories to form a single coherent file system.
-It basically binds separate folders into one whole, while keeping the folders still as separate entities.
+Docker images are built using a union filesystem.
+* Each image is composed of multiple layers
+* Each layer represents a filesystem change
+* Layers are stacked to form a single unified filesystem
 
-In Docker terms, each of those folders would be a layer.
-Multiple layers make up an image.
-
-When you look at a Docker image, then you'll see that there are multiple layers described.
-Each of them might have a separate created time.
-
-The `<missing>` part is just the wrong nomenclature. 
-It just means that they aren't images themselves.
-Only the layer that makes up the full image has the value set.
-Regular layers still have hashes.
+You can inspect image layers using:
+```bash
+docker image history <image>
+```
 
 ![Docker image history](./images/docker-history.png)
 
-Each line in the Dockerfile is a layer.
-Each layer is cached.
-When you change a line or data related to a layer, then all layers after that layer will need to be rebuilt.
-Docker decides to rebuild a layer if the output of that layer has changed.
-If the output is the same, then it will use the cached layer.
+Layers marked as ``<missing>``:
+* still exist
+* do not have a local image ID
+* often come from base images
 
-An image will re-use the cached layers whenever possible.
+---
 
-A container does not copy anything from the image.
-All it does is reference the image.
-It adds a read/write layer on top of the image.
-This is called the container layer.
-All changes made to the running container, such as writing new files, modifying existing files, and deleting files, are written to this layer.
+## Dockerfile layers and caching
+
+* Each instruction in a Dockerfile creates a new layer
+* Layers are cached
+* If a layer’s output changes:
+  * that layer and all following layers are rebuilt
+* If the output is unchanged:
+  * Docker reuses the cached layer
+
+For optimal caching:
+* place rarely changing instructions near the top
+* place frequently changing instructions (e.g. application code) near the bottom
+
+---
+
+## Container writable layer
+
+Images are read-only.
+
+When a container starts:
+* Docker adds a read/write container layer on top of the image
+* All filesystem changes occur in this layer:
+  * creating files
+  * modifying files
+  * deleting files
+
+The underlying image layers are never modified.
+
 ![Docker container layer](images/container-layer.png)
 ![Docker container image reuse](images/container-reuse.png)
 
-## Dockerfile
+---
 
-When we want to create our own image, we need to start by creating a `Dockerfile`.
-This is a special name that will be identified by Docker.
+## Dockerfile basics
 
-When using a Dockerfile, however, you can also specify another name.
-```
-docker build -f some-dockerfile
-```
+To create a custom image, you define a Dockerfile.
+* Dockerfile is the default filename
+* A different filename can be specified using:
+  ```bash
+    docker build -f <filename>
+  ```
 
-```Dockerfile
+---
+
+## Example Dockerfile
+```dockerfile
 # The FROM is always required.
 # It is normally a minimal distribution. It's usually alpine nowadays.
 # You'd mainly want a Linux distribution to use their package managers to install things.
-FROM debina:jessie
+FROM debian:bullseye
 
 # You can define environment variables with this.
 # It's an optional property.
-ENV SOME_VALUE some-value
+ENV SOME_VALUE=some-value
 
 # Optional commands that are run in the shell at build time
 # If you chain commands in a single RUN (&& ... &&), then all of those will be put into a single layer.
@@ -147,29 +198,49 @@ EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-The file system in Docker is completely hidden away from our OS.
-![Docker file paths](./images/docker-file-paths.png)
+### Instruction overview
 
-Once we have a `Dockerfile`, we need to build it into an image.
-A `Dockerfile` is simply a blueprint.
+* FROM
+  * Required. Defines the base image.
+* ENV
+  * Optional. Sets environment variables.
+* RUN
+  * Executes commands at build time and creates layers.
+* EXPOSE
+  * Informational only. Documents which ports the container may use.
+* CMD
+  * Defines the default command run when a container starts.
+  * This can be overridden in ``docker container run``.
 
-The build process outputs an ID, which can be used to run the image.
+---
 
-If we run a command that doesn't finish (ex. starting a server), then the `docker run <id>` command won't exit either.
+## Building and running images
 
-Whereas the `Dockerfile` has an `EXPOSE` statement, it is simply for documentation purposes.
-To actually expose a port, we need to include a property in our run command.
-`-p <portOnHost>:<portInsideContainer>`. This exposes a Docker port to a port on our host machine.
+* A Dockerfile is a blueprint
+* Building a Dockerfile creates an image
+* Running an image creates a container
 
-Docker images are read-only.
-Once you create them, and then start changing things related to your Dockerfile, then that won't change anything in an existing image.
-You have to re-build it to generate a new image with the new info.
+If the container’s main process runs indefinitely (e.g. a server), the container remains running.
 
-When writing a Dockerfile, we want the things that change the least to be at the start and the things that change the most at the bottom.
-This is to get proper layer caching.
+---
 
-So if we have changing code that is being copied over, and we want to isolate it, then we can put it in a separate layer.
-![Splitting up copy](./images/first-docker-optimization.png)
+## Ports and immutability
 
-When extending an image, then the same required statements do not apply.
-The image that we're extending from might already have them, so we don't need to duplicate.
+* EXPOSE does not publish ports, it's only informational
+* Ports are published using:
+    ```
+    -p <host-port>:<container-port>
+    ```
+
+Docker images are immutable:
+* changing a Dockerfile does not affect existing images
+* images must be rebuilt to apply changes
+
+---
+
+## Extending images
+
+When building on top of an existing image:
+* FROM is always required
+* other instructions (CMD, EXPOSE, etc.) may already be defined
+* redefining them is optional and overrides previous values
