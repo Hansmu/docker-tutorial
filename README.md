@@ -9,4 +9,5 @@
 4. [Persistent data](./section/Data/Data.md)
     > Describe main ways to persist data with containers.
 5. [Docker Compose](./section/DockerCompose/DockerCompose.md)
+   > Describes Docker Compose.
 6. [Networking](./section/Networking/Networking.md)
