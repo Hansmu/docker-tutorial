@@ -244,3 +244,438 @@ When building on top of an existing image:
 * FROM is always required
 * other instructions (CMD, EXPOSE, etc.) may already be defined
 * redefining them is optional and overrides previous values
+
+---
+
+## Dockerfile Instructions: CMD, ENTRYPOINT, and Command Forms
+
+This section covers how Dockerfile instructions behave, when they apply, and how ``CMD`` and ``ENTRYPOINT`` work together, including best practices for ``exec`` vs ``shell`` forms.
+
+---
+
+### Dockerfile instructions: overwrite vs additive
+
+When adding instructions to a Dockerfile, it’s useful to ask:
+
+#### 1️⃣ Does this instruction overwrite previous values or add to them?
+
+Some instructions are additive, while others overwrite previous definitions.
+
+##### Additive instructions
+
+These instructions add behavior or metadata without removing previous uses:
+
+* ``RUN``
+  * Each ``RUN`` creates a new layer.
+* ``EXPOSE``
+  * Multiple ports can be exposed across multiple instructions.
+* ``COPY``, ``ADD``
+  * Each adds files to the image filesystem.
+* ``ENV``
+  * Adds or updates environment variables (later values override earlier ones by key).
+
+##### Overwriting instructions
+
+These instructions replace any previous definition of the same type:
+
+* ``CMD``
+  * Only one CMD is active — the last one wins.
+* ``ENTRYPOINT``
+  * Only one ENTRYPOINT is active — the last one wins.
+* ``WORKDIR``
+  * Each new value replaces the previous working directory.
+
+---
+
+### Dockerfile instructions: build time vs runtime
+
+Another key question:
+
+#### 2️⃣ Does this instruction affect the image at build time or the container at runtime?
+
+##### Build-time instructions
+
+These affect the image and are executed during ``docker build``:
+* ``FROM``
+* ``RUN``
+* ``COPY``
+* ``ADD``
+
+They define the image’s filesystem and layers.
+
+##### Runtime instructions
+
+These affect container startup, not the image build:
+* ``CMD``
+* ``ENTRYPOINT``
+
+They define what happens when a container starts.
+
+##### Both build-time and runtime
+
+Some instructions affect the image and are available at runtime:
+* ``ENV``
+  * Stored in the image metadata
+  * Available to the container process
+
+---
+
+### CMD vs ENTRYPOINT
+
+#### CMD
+* Defines the default command or arguments
+* Can be overridden at runtime:
+  ```bash
+  docker run my-image bash
+  ```
+* Only one CMD is used (last one wins)
+
+#### ENTRYPOINT
+
+* Defines the main executable for the container
+* Intended to be harder to override
+* Ideal for:
+  * CLI tools
+  * startup scripts
+  * fixed application entrypoints
+
+ENTRYPOINT does not replace CMD — it works with it.
+
+---
+
+### How Docker executes ENTRYPOINT and CMD
+
+When both are defined, Docker combines them:
+
+```text
+ENTRYPOINT + CMD → final command
+```
+
+Example
+```Dockerfile
+ENTRYPOINT ["curl"]
+CMD ["--help"]
+```
+
+Docker executes:
+```bash
+curl --help
+```
+
+If you run:
+```bash
+docker run my-curl http://google.com
+```
+
+Docker executes:
+```bash
+curl http://google.com
+```
+
+CMD becomes default arguments, which the user can override.
+
+---
+
+### When ENTRYPOINT provides value
+
+``ENTRYPOINT`` is most useful when:
+* You want to create a CLI-like container
+* You want a fixed executable with configurable arguments
+* You want a startup script to always run
+
+ENTRYPOINT provides the most value when used together with CMD.
+
+#### Example: CLI-style container
+
+```Dockerfile
+FROM ubuntu:latest
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["curl"]
+CMD ["--help"]
+
+```
+
+Result:
+
+* ``docker run my-curl`` → shows help
+* ``docker run my-curl http://google.com`` → fetches URL
+
+##### Best practice reminder
+
+When installing packages:
+* Combine apt-get update and apt-get install
+* Remove /var/lib/apt/lists/*
+* This avoids unnecessary image bloat
+
+---
+
+#### ENTRYPOINT for startup scripts
+
+A common pattern is:
+* ENTRYPOINT → startup script
+* CMD → final process
+
+Example:
+```Dockerfile
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["node", "server.js"]
+```
+
+The entrypoint script prepares the environment, then runs the app.
+
+##### Important: exec "$@" in entrypoint scripts
+
+``ENTRYPOINT`` shell scripts must use:
+
+```sh
+exec "$@"
+```
+
+Why this matters:
+* Replaces the shell with the final process
+* Ensures the app runs as PID 1
+* Allows proper signal handling (SIGTERM, SIGINT)
+
+Without exec, signals may not reach your application correctly.
+
+---
+
+### Exec form vs shell form
+
+Dockerfile commands can be written in two forms.
+
+---
+
+#### Exec form (recommended for ENTRYPOINT and CMD)
+
+```Dockerfile
+CMD ["node", "server.js"]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+```
+
+Characteristics:
+* No shell involved
+* Correct signal handling
+* Arguments passed cleanly
+* Required for ENTRYPOINT + CMD composition
+
+
+✅ Always use exec form for ENTRYPOINT
+
+✅ Prefer exec form for CMD
+
+---
+
+#### Shell form
+
+```Dockerfile
+CMD node server.js
+RUN echo "Hello"
+```
+
+Characteristics:
+* Executed via ``/bin/sh -c``
+* Shell features available (``&&``, ``|``, variables)
+* Signals may not propagate correctly
+
+---
+
+#### When to use shell form
+
+##### Recommended use
+* RUN instructions (shorter, readable)
+* Commands that require shell features
+
+##### Use with caution
+* ``CMD`` shell form is acceptable only if shell behavior is required
+* Avoid shell form for ENTRYPOINT
+
+---
+
+#### Critical rules of thumb (memorize these)
+
+* RUN → shell form is fine
+* ENTRYPOINT → always exec form
+* CMD → exec form by default
+* ENTRYPOINT + CMD → both must be exec form
+* ENTRYPOINT scripts → must end with exec "$@"
+
+---
+
+## Appendix
+
+### Why exec "$@" matters in ENTRYPOINT scripts (PID 1 explained)
+
+#### What is PID 1?
+
+Inside every Linux system (including containers), PID 1 is the first process started.
+
+PID 1 has special responsibilities:
+* Receives termination signals (SIGTERM, SIGINT)
+* Is responsible for:
+  * handling or forwarding signals
+  * reaping zombie processes (child processes that have exited)
+
+In a container:
+> Whatever command Docker starts becomes PID 1.
+
+---
+
+#### Why PID 1 behavior is special
+
+PID 1 behaves differently from normal processes:
+
+* Default signal handling is different
+* If PID 1 ignores a signal, the container does not stop
+* If PID 1 does not reap child processes, zombies accumulate
+
+This is why containers can:
+* fail to shut down gracefully
+* hang on docker stop
+* leak zombie processes
+
+---
+
+#### What goes wrong without exec "$@"
+Common mistake
+```sh
+#!/bin/sh
+# entrypoint.sh
+echo "Setting things up..."
+node server.js
+```
+
+
+Docker runs:
+```
+sh (PID 1)
+└── node server.js (PID 2)
+```
+
+Problems:
+* ``sh`` is PID 1
+* ``node`` is not
+* Signals go to ``sh``, not to ``node``
+* ``sh`` does not forward signals by default
+
+Result:
+* ``docker stop`` sends ``SIGTERM``
+* ``node`` never receives it
+* Container may hang or be force-killed
+
+---
+
+#### What exec "$@" does
+
+Correct pattern
+
+```sh
+#!/bin/sh
+# entrypoint.sh
+echo "Setting things up..."
+exec "$@"
+```
+
+Now Docker runs:
+```
+node server.js (PID 1)
+```
+
+What ``exec`` does:
+* Replaces the shell process with the target command
+* No extra process layer
+* The final app becomes PID 1
+
+---
+
+#### Why this fixes signal handling
+
+With exec "$@":
+* Your application:
+  * receives SIGTERM, SIGINT, etc.
+  * can shut down gracefully
+* Docker can:
+  * stop containers cleanly
+  * respect timeouts
+
+This is essential for:
+* graceful shutdowns
+* clean restarts
+* production stability
+
+---
+
+#### Why ENTRYPOINT + CMD depends on this
+
+When using:
+```Dockerfile
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["node", "server.js"]
+```
+
+Docker passes ``CMD`` as arguments to the ``ENTRYPOINT``.
+
+Inside ``entrypoint.sh``:
+
+* ``$@`` expands to:
+  ```
+  node server.js
+  ```
+* ``exec "$@"`` hands control to the real app
+
+Without ``exec``, ENTRYPOINT becomes a signal black hole.
+
+---
+
+#### Zombie processes (another PID 1 responsibility)
+
+PID 1 must also reap child processes.
+
+If it doesn’t:
+* child processes exit
+* remain as zombies
+* consume process table entries
+
+Shells and some apps:
+* do not properly reap children
+* especially when PID 1
+
+This is why:
+* some containers include ``tini``
+* some base images provide init systems
+
+---
+
+#### When you might need an init process
+
+If your container:
+* runs multiple processes
+* spawns background workers
+* uses shell scripts extensively
+
+You may need:
+
+```Dockerfile
+ENTRYPOINT ["tini", "--"]
+CMD ["node", "server.js"]
+```
+
+``tini``:
+* becomes PID 1
+* forwards signals
+* reaps zombies
+
+---
+
+#### Mental model (very important)
+
+> PID 1 is special.
+> 
+> Shells make terrible PID 1s.
+> 
+> ``exec "$@"`` fixes that.
