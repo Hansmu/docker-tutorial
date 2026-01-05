@@ -115,11 +115,26 @@ Go into a container to verify connectivity:
 docker exec -it <ref> sh
 ```
 
-Notice that it uses a long reference as the name - ``<name>.<ID>``
+Notice that it uses a long reference as the name - ``<name>.<nr>.<ID>``
 
 ![alt text](image-12.png)
 
 If there'd be no overlay network, then it would not work.
+
+In this case, the manager nodes are running containers.
+
+This wouldn't happen in production, usually.
+
+To constrain the running to workers, you can add a constraint:
+```bash
+docker service create \
+  --name web \
+  --constraint 'node.role==worker' \
+  nginx
+```
+
+The general mental model is:
+> Managers decide. Workers execute.
 
 ---
 
