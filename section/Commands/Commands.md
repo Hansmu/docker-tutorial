@@ -214,6 +214,14 @@ docker compose up -d
 
 > `docker-compose up` still works but is considered legacy.
 
+The default file used for `docker compose` is `docker-compose.yml`.
+
+You can use the `-f` flag to change the filename to use.
+
+```bash
+docker compose -f compose.yaml -f compose.admin.yaml up
+```
+
 ---
 
 ### Stopping a Compose project
