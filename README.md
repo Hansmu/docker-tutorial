@@ -12,3 +12,7 @@
    > Describes Docker Compose.
 6. [Networking](./section/Networking/Networking.md)
    > Describes networking in Docker.
+7. [Docker Swarm](./section/SwarmMode/DockerSwarmMode.md)
+   > Describes Docker Swarm and how to set it up.
+8. [Kubernetes](./section/Kubernetes/Kubernetes.md)
+   > Describes Kubernetes
