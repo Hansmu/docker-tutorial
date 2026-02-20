@@ -8,3 +8,5 @@ These documents describe how Kubernetes works.
 > How to inspect resources and debug issues.
 3. [Exposing ports](exposingPorts/ExposingPorts.md)
 > How to expose deployments and using Services.
+4. [Management techniques introduction](management/ManagementTechniquesIntro.md)
+> Describes what management options and exist and how they differ.
