@@ -10,3 +10,5 @@ These documents describe how Kubernetes works.
 > How to expose deployments and using Services.
 4. [Management techniques introduction](management/ManagementTechniquesIntro.md)
 > Describes what management options and exist and how they differ.
+5. [Managing Kubernetes Declaratively with YAML](management/YAMLManagement.md)
+> Describes how to use YAML files to manage Kubernetes.
