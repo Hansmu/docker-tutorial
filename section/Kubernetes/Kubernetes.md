@@ -12,3 +12,5 @@ These documents describe how Kubernetes works.
 > Describes what management options and exist and how they differ.
 5. [Managing Kubernetes Declaratively with YAML](management/YAMLManagement.md)
 > Describes how to use YAML files to manage Kubernetes.
+6. [Additional Things](additional/AdditionalKubernetes.md)
+> Contains different things related to Kubernetes. Storage, Ingress, CRDs, Deployment Abstractions, Dashboard, Namespaces, Context.
